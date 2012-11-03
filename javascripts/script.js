@@ -43,7 +43,6 @@
       var num, time;
       num = Math.random();
       time = "0.5s";
-      console.log(num);
       return "" + time + " opacity " + num + "s";
     });
     window.zoom = new Zoom("z");
@@ -81,7 +80,6 @@
   handleZoom = function(e) {
     var image,
       _this = this;
-    console.log(this.getAttribute("data-url"));
     e.preventDefault();
     if (this.loaded) {
       return window.zoom.zoom(this, this.parentNode);

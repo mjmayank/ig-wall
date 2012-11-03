@@ -99,26 +99,32 @@
         image.onload = function() {
           return _this.doZoom(element, thumb);
         };
-        return image.src = element.getAttribute("data-url");
+        return image.src = element.getAttribute("data-url") ? element.getAttribute("data-url") : element.getAttribute("href");
       }
     };
 
     Zoom.prototype.doZoom = function(element, thumb) {
-      var big, finalScaleString, finalTranslateString, finalX, finalY, fullURL, height, image, posX, posY, position, scale, scrollTop, title, width, wrap,
+      var big, finalScaleString, finalTranslateString, finalX, finalY, fullURL, height, image, originalHeight, posX, posY, position, scale, scrollTop, title, width, wrap,
         _this = this;
       if (this.opened) {
         this.close();
       }
       this.opened = true;
-      fullURL = element.getAttribute("data-url");
+      fullURL = element.getAttribute("data-url") ? element.getAttribute("data-url") : element.getAttribute("href");
       image = this.cache[fullURL];
       if (image === void 0) {
         image = document.createElement("img");
         image.setAttribute("src", fullURL);
         this.cache[fullURL] = image;
       }
+      originalHeight = image.height;
       width = image.width;
       height = image.height;
+      if (window.devicePixelRatio > 1) {
+        width *= .5;
+        height *= .5;
+        originalHeight *= .5;
+      }
       if (element.getAttribute("title")) {
         title = document.createElement("div");
         title.className = "title";
@@ -142,6 +148,8 @@
       big.setAttribute("src", fullURL);
       big.style.webkitTransition = "-webkit-transform " + this.TRANSFORM_DURATION + "ms";
       big.style.display = "block";
+      big.style.width = width + "px";
+      big.style.height = originalHeight + "px";
       wrap = document.createElement("div");
       wrap.className = "wrap";
       wrap.appendChild(big);

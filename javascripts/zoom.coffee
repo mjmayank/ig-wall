@@ -89,7 +89,7 @@ class self.Zoom
 			image = document.createElement "img"
 			image.onload = =>
 				@doZoom element, thumb
-			image.src = element.getAttribute "data-url"
+			image.src = if element.getAttribute "data-url" then element.getAttribute "data-url" else element.getAttribute "href"
 		
 	doZoom: (element, thumb) ->
 		# Close the zoomed image
@@ -98,7 +98,7 @@ class self.Zoom
 		@opened = true
 		
 		# Retrieve cached image
-		fullURL = element.getAttribute "data-url"
+		fullURL = if element.getAttribute "data-url" then element.getAttribute "data-url" else element.getAttribute "href"
 		image = @cache[fullURL]
 
 		# Sometimes the image didn't get put the cache
@@ -106,8 +106,13 @@ class self.Zoom
 			image = document.createElement "img"
 			image.setAttribute "src", fullURL
 			@cache[fullURL] = image
+		originalHeight = image.height
 		width = image.width
 		height = image.height
+		if window.devicePixelRatio > 1
+			width *= .5
+			height *= .5
+			originalHeight *= .5
 		
 		# Create title, recompute height
 		if element.getAttribute "title"
@@ -138,6 +143,8 @@ class self.Zoom
 		# Add styles to DOM image
 		big.style.webkitTransition = "-webkit-transform #{@TRANSFORM_DURATION}ms"
 		big.style.display = "block" # For more accurate placement
+		big.style.width = width + "px"
+		big.style.height = originalHeight + "px"
 		
 		# Create wrapping div
 		wrap = document.createElement "div"

@@ -43,7 +43,6 @@ window.drawTree = (insta) ->
 		.style("-webkit-transition", ->
 			num = Math.random()
 			time = "0.5s"
-			console.log num
 			return "#{time} opacity #{num}s"
 		)
 		
@@ -65,7 +64,6 @@ cell = ->
 		.style("height", (d) -> Math.max(0, d.dy - 1) + "px")
 
 handleZoom = (e) ->
-	console.log @getAttribute "data-url"
 	e.preventDefault()
 	# Check to see if the image is cached
 	if @loaded
