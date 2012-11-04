@@ -27,15 +27,15 @@ var run = function() {
           "src": pic.source,
           "size": pic.likes.data.length,
           "url": pic.link,
-          "title": pic.caption ? pic.caption.text : ""
+          "title": pic.name ? pic.name.text : ""
         };
       }
       else{
         detail = {
           "src": pic.source,
-          "size": 0,
+          "size": 1,
           "url": pic.link,
-          "title": pic.caption ? pic.caption.text : ""
+          "title": pic.name ? pic.name.text : ""
         };
       }
       json.children.push(detail);
@@ -124,21 +124,54 @@ var run = function() {
     FB.api('/me/albums', function(response) {
       for(var i=0;i<response.data.length;i++){
         if(response.data[i].type === 'profile'){
-          FB.api('/' + response.data[i].id + '/photos', {limit:10000}, drawTree);
+          FB.api('/' + response.data[i].id + '/photos', drawTree);
         }
       }
     });
-   /* var auth;
-    window.token = window.location.hash.replace("#", "");
-    window.location.hash = "";
-    window.script = document.createElement("script");
-    script.src = 'https://api.instagram.com/v1/users/self/feed/?' + window.token + '&callback=window.drawTree';
-//FB.api('/me/albums', {limit:10000}, drawTree);
-return document.getElementsByTagName('head')[0].appendChild(script);*/
-};
+  };
 
-window.addEventListener("DOMContentLoaded", init, false);
-init();
+  window.addEventListener("DOMContentLoaded", init, false);
+  init();
+}
+
+function handleStatusChange(response) {
+ document.body.className = response.authResponse ? 'connected' : 'not_connected';
+ if(document.body.className === 'not_connected'){
+   needlogin();
+ }
+ else{
+   login();
+ }
+}
+
+login = function(){
+  FB.getLoginStatus(function(response) {
+    if (response.status === 'connected') {
+      FB.api('/me/permissions', function(response){
+        if(response.data[0].user_photos !== 1){
+          FB.login(function(response) { }, {scope:'user_photos'});
+          needlogin();
+        }
+      });
+      auth.style.display = "none";
+      run();
+    } else if (response.status === 'not_authorized') {
+      FB.login(function(response) { }, {scope:'user_photos'});
+      needlogin();
+    } else {
+      FB.login(function(response) { }, {scope:'user_photos'});
+      needlogin();
+    }
+  }); 
+
+}
+
+needlogin = function(){
+  auth = document.getElementsByClassName("auth")[0];
+  auth.style.display = "block";
+  return window.setTimeout(function() {
+    return auth.className = "auth loaded";
+  }, 0);
 }
 
 
@@ -149,26 +182,10 @@ window.fbAsyncInit = function() {
     xfbml: true,
     oauth: true});
 
-  FB.getLoginStatus(function(response) {
-    if (response.status === 'connected') {
-      run();
-    } else if (response.status === 'not_authorized') {
-      FB.login(function(response) { }, {scope:'user_status,user_photos'});
-      auth = document.getElementsByClassName("auth")[0];
-      auth.style.display = "block";
-      return window.setTimeout(function() {
-        return auth.className = "auth loaded";
-      }, 0);
-    } else {
-      FB.login(function(response) { }, {scope:'user_status,user_photos'});
-      auth = document.getElementsByClassName("auth")[0];
-      auth.style.display = "block";
-      return window.setTimeout(function() {
-        return auth.className = "auth loaded";
-      }, 0);
-    }
-  }); 
+  FB.Event.subscribe('auth.statusChange', handleStatusChange);
+  needlogin();
 };
+
 
 (function(d){
   var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
