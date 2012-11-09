@@ -9,6 +9,7 @@ var run = function() {
   height = self.innerHeight - 10;
 
   window.drawTree = function(insta) {
+    console.log("hello");
     console.log(insta.data);
     var detail, div, json, pic, treemap, _i, _len, _ref,
     _this = this;
@@ -22,24 +23,20 @@ var run = function() {
     _ref = insta.data;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       pic = _ref[_i];
-      if(pic.likes!==undefined){
-        detail = {
-          "src": pic.source,
-          "size": pic.likes.data.length,
-          "url": pic.link,
-          "title": pic.name ? pic.name.text : ""
-        };
-      }
-      else{
-        detail = {
-          "src": pic.source,
-          "size": 1,
-          "url": pic.link,
-          "title": pic.name ? pic.name.text : ""
-        };
-      }
+      //console.log(pic);
+      name = (pic.name === undefined) ?  "" : pic.name + " | ";
+      likes = (pic.likes === undefined) ? 0 : pic.likes.data.length;
+      comments = (pic.comments === undefined) ? 0 : pic.comments.data.length/2;
+      detail = {
+        "src": pic.source,
+        "size": likes + comments,
+        "url": pic.link,
+        "title": name + likes + " likes | " + comments * 2 + " comments"
+      };
       json.children.push(detail);
     }
+    document.getElementById("pagelike").style.display = "none";
+    auth.style.display = "none";
     div.data([json]).selectAll("div").data(treemap.nodes).enter().append("div").attr("class", "cell").call(cell).style("background-image", function(d) {
       if (d.children) {
         return null;
@@ -121,57 +118,120 @@ var run = function() {
   };
 
   init = function() {
-    FB.api('/me/albums', function(response) {
-      for(var i=0;i<response.data.length;i++){
-        if(response.data[i].type === 'profile'){
-          FB.api('/' + response.data[i].id + '/photos', drawTree);
+    if(album === 'profile')
+      FB.api('/' + friend + '/albums', function(response) {
+        for(var i=0;i<response.data.length;i++){
+          if(response.data[i].type === 'profile'){
+            FB.api('/' + response.data[i].id + '/photos?fields=likes.limit(300),name,source,comments,link&limit=200', drawTree);
+          }
         }
-      }
-    });
-  };
+      });
+    else{
+      FB.api('/'+ friend +'/photos?fields=likes.limit(500),name,source,comments,link&limit=200', function(response) {
+        drawTree(response);
+      });
+    }
+//for recent pictures
+};
 
-  window.addEventListener("DOMContentLoaded", init, false);
-  init();
+window.addEventListener("DOMContentLoaded", init, false);
+init();
 }
 
 function handleStatusChange(response) {
- document.body.className = response.authResponse ? 'connected' : 'not_connected';
- if(document.body.className === 'not_connected'){
+  FB.api('/me/permissions', checkPermissions);
+  console.log("ran handleStatusChange");
+  document.body.className = response.authResponse ? 'connected' : 'not_connected';
+  if(document.body.className === 'not_connected' || !document.body.authorized){
+    //if(document.body.className === 'not_connected'){
+    console.log("body class name: " + document.body.className);
+    console.log("authorized " + document.body.authorized);
    needlogin();
  }
  else{
-   login();
- }
+  console.log("ran login");
+  login();
+}
+}
+function checkPermissions(response){
+  console.log("checking permissions")
+  console.log(response);
+  if(document.body.className === 'connected'){
+    if(response.data[0].user_photos !== 1 || response.data[0].friends_photos !== 1){
+      document.body.authorized = false;
+    }
+    else{
+      document.body.authorized = true;
+    }
+  }
+  else{
+    document.body.authorized = false;
+  }
+  console.log("check permissions authorized?");
+  console.log(document.body.authorized);
 }
 
-login = function(){
+var login = function(form){
+  console.log("ran login");
+  friend = "";
+  album = "profile";
+  if(form=== undefined){
+    friend = "";
+  }
+  else{
+    friend = form.friend.value;
+    for (i = 0; i < form.album.length; i++) {
+      if (form.album[i].checked){
+        album = form.album[i].value;
+      }
+    }
+  }
+  console.log(friend + " " + album);
+  console.log(form)
+  if(friend === ""){
+    friend = "me";
+  }
   FB.getLoginStatus(function(response) {
     if (response.status === 'connected') {
-      FB.api('/me/permissions', function(response){
-        if(response.data[0].user_photos !== 1){
-          FB.login(function(response) { }, {scope:'user_photos'});
-          needlogin();
-        }
-      });
-      auth.style.display = "none";
-      run();
+      FB.api('/me/permissions', checkPermissions)
+      console.log("checking from login function");
+      console.log(document.body.authorized);
+      if(!document.body.authorized){
+        FB.login(function(response) { }, {scope:'user_photos,friends_photos'});
+        needlogin();
+      }
+      else{
+        document.getElementsByClassName("auth")[0].innerHTML = "Loading...";
+        run();
+      }
     } else if (response.status === 'not_authorized') {
-      FB.login(function(response) { }, {scope:'user_photos'});
+      FB.login(function(response) { }, {scope:'user_photos,friends_photos'});
       needlogin();
     } else {
-      FB.login(function(response) { }, {scope:'user_photos'});
+      FB.login(function(response) { }, {scope:'user_photos,friends_photos'});
       needlogin();
     }
   }); 
 
 }
 
-needlogin = function(){
+var needlogin = function(){
+  //console.log("needlogin");
   auth = document.getElementsByClassName("auth")[0];
   auth.style.display = "block";
   return window.setTimeout(function() {
     return auth.className = "auth loaded";
   }, 0);
+}
+
+var showForm = function(){
+  document.getElementById('form').style.display= "block";
+  document.getElementById('viewfriend').style.display= "none";
+}
+var hideForm = function(box){
+  document.getElementById('form').style.display= "none";
+  document.getElementById('viewfriend').style.display= "inline";
+  box.value = "";
 }
 
 

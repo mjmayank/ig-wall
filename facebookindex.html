@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>Facebook Wall</title>
+	<title>Treemap for Facebook</title>
 	
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,15 +20,26 @@
 <body>
 	<noscript>Please return with some JavaScript. Thanks!</noscript>
 	<div class="auth">
-		<h1>Facebook Picture Wall</h1>
-		<p>Forked from <a href="mynameisraj.com/ig">Raj Ramamurthy's Instawall</a></p>
-		<p>Adapted for Facebook</p>
-		<p>By Mayank</p>
-		<button onclick="login()" class="auth-button">Let's go!</button>
+		<h1>Treemap for Facebook</h1>
+		<p>Displays your photos in a beautifully designed treemap</p>
+		<p>Forked from Raj Ramamurthy's <a href="http://mynameisraj.com/ig" target="blank">Instawall.</a></p>
+		<p>Adapted for Facebook by <a href="http://twitter.com/mjmayank1" target="blank">Mayank</a>.</p>
+		
+		<form action="" method="GET">
+			<input type="radio" name="album" value="profile">Profile Pictures<br>
+			<input type="radio" name="album" value="recent">Recent Photos<br>
+			<div id="form" style="display:none">
+				Friend (<a href="https://www.facebook.com/help/usernames" target="blank">username</a>): <input type="text" id="friendbox" name="friend"><br>
+				<a onclick="hideForm(friendbox)" class="auth-button">Back</a>
+			</div>
+			<input type="button" class="auth-button"  value="Go!" onclick="login(this.form)">
+		</form>
+		<button onclick="showForm()" class="auth-button" id="viewfriend">View a Friend</button><br>
 	</div>
 	<div id="chart"></div>
 	<div id="fb-root"></div>
-	<script src="javascripts/facebookscript.js"></script>
+	<div id="pagelike" class="fb-like" data-href="http://mjmayank.com/treemap" data-width="450" data-show-faces="true"></div>
+	<script src="javascripts/script.js"></script>
 </body>
 
 </html>
